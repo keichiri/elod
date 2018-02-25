@@ -225,6 +225,6 @@ defmodule Announcing.UDPAnnouncer do
     Logger.debug "Tracker for URL: #{state.url} gave interval: #{interval} and peer data: #{inspect peer_data}"
     Announcer.report_peer_data(state.dl_info, peer_data)
     next_announce = :os.system_time(:seconds) + interval
-    new_state = %{state | next_announce: next_announce}
+    %{state | next_announce: next_announce}
   end
 end
