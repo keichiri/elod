@@ -173,11 +173,11 @@ defmodule Peers.Test.PWP do
       |> Enum.map(&PWP.encode/1)
       |> Enum.join
 
-    encoded_messages = encoded_messages <> "leftover"
+    encoded_messages = encoded_messages <> <<0,0,0,13,7,1,1>>
 
     {:ok, decoded_messages, leftover} = PWP.decode_messages(encoded_messages)
 
-    assert leftover == "leftover"
+    assert leftover == <<0,0,0,13,7,1,1>>
     assert decoded_messages == messages
   end
 end
