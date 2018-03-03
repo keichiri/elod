@@ -10,6 +10,8 @@ defmodule Peers.PWP do
   it complicates things unnecessarily, since messages are very simple.
   """
 
+  @maximum_message_size 1024 * 1024 * 10
+
 
   def encode_handshake(info_hash, peer_id)
     when byte_size(info_hash) == 20 and byte_size(peer_id) == 20 do
@@ -152,7 +154,12 @@ defmodule Peers.PWP do
     binary = <<length :: big-integer-size(32), rest :: binary>>,
     messages
   ) when byte_size(rest) < length do
-    {:ok, Enum.reverse(messages), binary}
+    <<id>> = String.at(rest, 0)
+    if length <= @maximum_message_size and id <= 8 do
+      {:ok, Enum.reverse(messages), binary}
+    else
+      {:error, :invalid_message}
+    end
   end
   defp decode_messages(
     bin = <<length :: big-integer-size(32), _ :: bytes-size(length), rest :: binary>>,
@@ -169,7 +176,7 @@ defmodule Peers.PWP do
         {:error, reason}
     end
   end
-  defp decode_messages(binary, messages) when byte_size(binary) < 4 do
+  defp decode_messages(binary, messages) when byte_size(binary) <= 5 do
     {:ok, Enum.reverse(messages), binary}
   end
 end
