@@ -92,7 +92,7 @@ defmodule Peers.Controller.BlockHandler do
     new_requested = Enum.reduce(
       out,
       requested,
-      fn block = %{index: index, offset: offset, length: length}, requested_acc ->
+      fn %{index: index, offset: offset, length: length}, requested_acc ->
         Map.put(requested_acc, {index, offset, length}, now)
       end
     )
@@ -106,7 +106,7 @@ defmodule Peers.Controller.BlockHandler do
   defp purge_older_requested(requested) do
     now = :os.system_time(:seconds)
     requested
-    |> Enum.reject(fn {block, request_ts} ->
+    |> Enum.reject(fn {_block, request_ts} ->
       now - request_ts > @seconds_until_stale
     end)
     |> Enum.into(%{})

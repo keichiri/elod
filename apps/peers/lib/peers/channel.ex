@@ -23,7 +23,6 @@ defmodule Peers.Channel do
   require Logger
 
   alias Peers.Channel, as: Channel
-  alias Peers.PeerController, as: PeerController
   alias Peers.PWP, as: PWP
 
 
