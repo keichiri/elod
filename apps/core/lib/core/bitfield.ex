@@ -37,4 +37,13 @@ defmodule Core.Bitfield do
     end)
     |> List.flatten
   end
+
+
+  def add_index(bitfield, piece_index) do
+    byte_index = div(piece_index, 8)
+    byte_offset = rem(piece_index, 8)
+    <<before :: bytes-size(byte_index), current_value, rest :: binary>> = bitfield
+    new_value = Bitwise.band(current_value, Bitwise.<<<(1, 7 - byte_offset))
+    <<before :: binary, new_value, rest :: binary>>
+  end
 end

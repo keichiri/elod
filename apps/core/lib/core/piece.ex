@@ -1,3 +1,8 @@
+defmodule Core.Block do
+  defstruct index: nil, offset: nil, length: nil, data: nil
+end
+
+
 defmodule Core.Piece do
   @moduledoc """
   Represents a piece as described in metafile (.torrent file)
@@ -8,6 +13,10 @@ defmodule Core.Piece do
   defstruct index: nil, hash: nil, length: nil, data: nil
 
   alias Core.Piece, as: Piece
+  alias Core.Block, as: Block
+
+  # TODO - check the correct default size, and make it configurable
+  @block_size 512
 
 
   @doc """
@@ -36,4 +45,22 @@ defmodule Core.Piece do
   end
   def create_from_info(input) when is_map(input), do: {:error, :missing_required_fields}
   def create_from_info(_input), do: {:error, :invalid_info}
+
+
+  def split(%{index: index, length: length}) do
+    split(0, length, index, [])
+  end
+
+  defp split(offset, length, _index, blocks) when offset >= length do
+    Enum.reverse(blocks)
+  end
+  defp split(offset, length, index, blocks) do
+    block_length = if offset + @block_size <= length do
+      @block_size
+    else
+      length - offset
+    end
+    block = %Block{index: index, offset: offset, length: block_length}
+    split(offset + @block_size, length, index, [block | blocks])
+  end
 end
