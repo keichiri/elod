@@ -20,7 +20,7 @@ defmodule Storage.Mixfile do
   def application do
     # Specify extra applications you'll use from Erlang/Elixir
     [extra_applications: [:logger],
-     mod: {Storage.Application, []}]
+     mod: {Storage.Application, ["/tmp/storage"]}]
   end
 
   # Dependencies can be Hex packages:

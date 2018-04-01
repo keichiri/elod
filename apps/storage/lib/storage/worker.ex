@@ -5,13 +5,15 @@ defmodule Storage.Worker do
 
   """
 
+  defstruct path: nil, id: nil
+
   use GenServer
 
   require Logger
 
 
-  def start_link(path) do
-    GenServer.start_link(__MODULE__, path)
+  def start_link(path, id) do
+    GenServer.start_link(__MODULE__, [path, id])
   end
 
   @doc """
@@ -54,25 +56,34 @@ defmodule Storage.Worker do
   end
 
 
-  def init(path) do
-    Logger.debug "Starting worker for path: #{path}"
-    {:ok, path}
+  def init([path, id]) do
+    Core.Registry.register({:storage, :worker, {path, id}}, self())
+    Process.flag(:trap_exit, true)
+    {:ok, %Storage.Worker{path: path, id: id}}
   end
 
 
-  def handle_cast({:store, index, data, fun}, path) do
+  def handle_cast({:store, index, data, fun}, state = %{path: path}) do
     store_piece(path, index, data, fun)
-    {:noreply, path}
+    {:noreply, state}
   end
 
-  def handle_cast({:retrieve, index, fun}, path) do
+  def handle_cast({:retrieve, index, fun}, state = %{path: path}) do
     retrieve_piece(path, index, fun)
-    {:noreply, path}
+    {:noreply, state}
   end
 
-  def handle_cast({:compose_pieces, files, fun}, path) do
+  def handle_cast({:compose_pieces, files, fun}, state = %{path: path}) do
     compose_pieces(path, files, fun)
-    {:noreply, path}
+    {:noreply, state}
+  end
+
+  def terminate(reason, state) do
+    unless reason == :normal do
+      Logger.warn "Worker terminating because of #{inspect reason}"
+    end
+    Core.Registry.deregister({:storage, :worker, {state.path, state.id}})
+    :ok
   end
 
 
